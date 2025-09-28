@@ -1,5 +1,7 @@
-Tools Used
+Tool Used
 
 IntelliJ IDEA
 
-Andriod SDK
+Android SDK
+
+Kotlin 
