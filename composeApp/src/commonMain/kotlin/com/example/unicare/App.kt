@@ -1,49 +1,169 @@
 package com.example.unicare
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.safeContentPadding
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import org.jetbrains.compose.resources.painterResource
-import org.jetbrains.compose.ui.tooling.preview.Preview
+import androidx.compose.material3.MaterialTheme
+import Navigation.*
+import OneLightColorScheme
+import Screens.*
 
-import unicare.composeapp.generated.resources.Res
-import unicare.composeapp.generated.resources.compose_multiplatform
+
+// Define your app states
+enum class AppScreen {
+    ONBOARDING,
+    ROLE_SELECTION,
+    SIGN_IN,
+    SIGN_UP,
+    DOCTOR_MAIN,
+    PATIENT_MAIN
+}
 
 @Composable
-@Preview
 fun App() {
-    MaterialTheme {
-        var showContent by remember { mutableStateOf(false) }
-        Column(
-            modifier = Modifier
-                .background(MaterialTheme.colorScheme.primaryContainer)
-                .safeContentPadding()
-                .fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Button(onClick = { showContent = !showContent }) {
-                Text("Click me!")
-            }
-            AnimatedVisibility(showContent) {
-                val greeting = remember { Greeting().greet() }
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    Image(painterResource(Res.drawable.compose_multiplatform), null)
-                    Text("Compose: $greeting")
+    MaterialTheme(colorScheme = OneLightColorScheme) {
+        UniCareApp()
+    }
+}
+
+@Composable
+fun UniCareApp() {
+    var currentScreen by remember { mutableStateOf(AppScreen.ONBOARDING) }
+    var currentUserType by remember { mutableStateOf(UserType.DOCTOR) }
+    var currentRoute by remember { mutableStateOf("doctor_dashboard") }
+
+    when (currentScreen) {
+        AppScreen.ONBOARDING -> {
+            OnboardingScreen(
+                onGetStarted = { currentScreen = AppScreen.ROLE_SELECTION },
+                onSkipToHome = {
+                    currentUserType = UserType.PATIENT
+                    currentScreen = AppScreen.PATIENT_MAIN
+                    currentRoute = "patient_dashboard"
                 }
-            }
+            )
+        }
+        AppScreen.ROLE_SELECTION -> {
+            RoleSelectionScreen(
+                onDoctorSelected = {
+                    currentUserType = UserType.DOCTOR
+                    currentScreen = AppScreen.SIGN_IN
+                },
+                onPatientSelected = {
+                    currentUserType = UserType.PATIENT
+                    currentScreen = AppScreen.SIGN_IN
+                },
+                onBackClick = { currentScreen = AppScreen.ONBOARDING }
+            )
+        }
+        AppScreen.SIGN_IN -> {
+            SignInScreen(
+                onSignInSuccess = {
+                    when (currentUserType) {
+                        UserType.DOCTOR -> {
+                            currentScreen = AppScreen.DOCTOR_MAIN
+                            currentRoute = "doctor_dashboard"
+                        }
+                        UserType.PATIENT -> {
+                            currentScreen = AppScreen.PATIENT_MAIN
+                            currentRoute = "patient_dashboard"
+                        }
+                    }
+                },
+                onSignUpClick = { currentScreen = AppScreen.SIGN_UP },
+                onBackClick = { currentScreen = AppScreen.ROLE_SELECTION }
+            )
+        }
+        AppScreen.SIGN_UP -> {
+            SignUpScreen(
+                onSignUpSuccess = {
+                    when (currentUserType) {
+                        UserType.DOCTOR -> {
+                            currentScreen = AppScreen.DOCTOR_MAIN
+                            currentRoute = "doctor_dashboard"
+                        }
+                        UserType.PATIENT -> {
+                            currentScreen = AppScreen.PATIENT_MAIN
+                            currentRoute = "patient_dashboard"
+                        }
+                    }
+                },
+                onSignInClick = { currentScreen = AppScreen.SIGN_IN },
+                onBackClick = { currentScreen = AppScreen.SIGN_IN }
+            )
+        }
+        AppScreen.DOCTOR_MAIN -> {
+            DoctorMainScreen(
+                currentRoute = currentRoute,
+                onNavigationItemClick = { navItem ->
+                    currentRoute = navItem.route
+                },
+                onBackToAuth = {
+                    currentScreen = AppScreen.ROLE_SELECTION
+                    currentRoute = "doctor_dashboard"
+                }
+            )
+        }
+        AppScreen.PATIENT_MAIN -> {
+            PatientMainScreen(
+                currentRoute = currentRoute,
+                onNavigationItemClick = { navItem ->
+                    currentRoute = navItem.route
+                },
+                onBackToAuth = {
+                    currentScreen = AppScreen.ROLE_SELECTION
+                    currentRoute = "patient_dashboard"
+                }
+            )
+        }
+    }
+}
+
+@Composable
+fun DoctorMainScreen(
+    currentRoute: String,
+    onNavigationItemClick: (BottomNavItems) -> Unit,
+    onBackToAuth: () -> Unit
+) {
+    androidx.compose.material3.Scaffold(
+        bottomBar = {
+            FloatingBottomNav(
+                currentRoute = currentRoute,
+                onItemClick = onNavigationItemClick,
+                userType = UserType.DOCTOR
+            )
+        }
+    ) { paddingValues ->
+        when (currentRoute) {
+            "doctor_patients" -> DoctorPatientsScreen()
+            "doctor_search" -> DoctorSearchScreen()
+            "add_patient" -> AddPatientScreen()
+            "doctor_profile" -> DoctorProfileScreen()
+            else -> DoctorPatientsScreen()
+        }
+    }
+}
+
+@Composable
+fun PatientMainScreen(
+    currentRoute: String,
+    onNavigationItemClick: (BottomNavItems) -> Unit,
+    onBackToAuth: () -> Unit
+) {
+    androidx.compose.material3.Scaffold(
+        bottomBar = {
+            FloatingBottomNav(
+                currentRoute = currentRoute,
+                onItemClick = onNavigationItemClick,
+                userType = UserType.PATIENT
+            )
+        }
+    ) { paddingValues ->
+        when (currentRoute) {
+            "patient_visits" -> PatientVisitsScreen()
+            "patient_notifications" -> PatientNotificationsScreen()
+            "patient_files" -> PatientFilesScreen()
+            "patient_prescription" -> PatientPrescriptionScreen()
+            "patient_profile" -> PatientProfileScreen()
+            else -> PatientVisitsScreen()
         }
     }
 }
