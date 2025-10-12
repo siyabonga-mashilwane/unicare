@@ -4,30 +4,41 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import Screens.*
+import kotlinx.coroutines.delay
 
 @Composable
 fun AppRouter() {
     val navigator = rememberAppNavigator()
+    var userRole by remember { mutableStateOf<UserType?>(null) }
 
     //Start with splash if no screens in stack
     if (navigator.backStack.isEmpty()) {
         navigator.navigateTo(Screen.Splash)
     }
 
-    AppRouterContent(navigator = navigator)
+    AppRouterContent(
+        navigator = navigator,
+        userRole = userRole,
+        onUserRoleSelected = { role ->
+            userRole = role
+        }
+    )
 }
 
 @Composable
-fun AppRouterContent(navigator: AppNavigator) {
+fun AppRouterContent(
+    navigator: AppNavigator,
+    userRole: UserType?,
+    onUserRoleSelected: (UserType?) -> Unit
+) {
     val currentScreen = navigator.currentScreen
-    val userType = navigator.getUserType()
 
     BoxWithBottomNav(
         navigator = navigator,
-        userType = userType,
+        userType = userRole ?: UserType.DOCTOR, //Default to Doctor if not selected
         currentRoute = navigator.currentRoute
     ){
         when (currentScreen) {
@@ -40,15 +51,12 @@ fun AppRouterContent(navigator: AppNavigator) {
 
             is Screen.Onboarding -> OnboardingScreen(
                 onGetStarted = { navigator.navigateAndReplace(Screen.SignIn) },
-                onSkipToHome = { navigator.navigateAndReplace(Screen.Home) }
+                onSkipToHome = { navigator.navigateAndReplace(Screen.RoleSelection) }
             )
 
             is Screen.SignIn -> SignInScreen(
                 onSignInSuccess = {
-                    //After sign in, go to appropriate dashboard based on user type
-                    val dashboard = if(userType == UserType.DOCTOR)
-                        Screen.DoctorDashboard else Screen.PatientDashboard
-                    navigator.navigateAndReplace(dashboard)
+                    navigator.navigateAndReplace(Screen.RoleSelection)
                 },
                 onSignUpClick = { navigator.navigateTo(Screen.SignUp) },
                 onBackClick = { navigator.goBack() }
@@ -56,20 +64,32 @@ fun AppRouterContent(navigator: AppNavigator) {
 
             is Screen.SignUp -> SignUpScreen(
                 onSignUpSuccess = {
-                    val dashboard = if(userType == UserType.DOCTOR)
-                        Screen.DoctorDashboard else Screen.PatientDashboard
-                    navigator.navigateAndReplace(dashboard)
+                    navigator.navigateAndReplace(Screen.RoleSelection)
                 },
                 onSignInClick = { navigator.navigateTo(Screen.SignIn) },
                 onBackClick = { navigator.goBack() }
             )
 
+            // Role Selection
+            is Screen.RoleSelection -> RoleSelectionScreen(
+                onDoctorSelected = {
+                    onUserRoleSelected(UserType.DOCTOR)
+                    navigator.navigateAndReplace(Screen.DoctorDashboard)
+                },
+                onPatientSelected = {
+                    onUserRoleSelected(UserType.PATIENT)
+                    navigator.navigateAndReplace(Screen.PatientDashboard)
+                },
+                onBackClick = { navigator.goBack() }
+            )
+
+            // Home Screen (if you have one)
             is Screen.Home -> HomeScreen(
                 onDoctorClick = {
                     navigator.navigateTo(Screen.DoctorDashboard)
                 },
                 onPatientClick = {
-                    navigator.navigateTo(Screen.PatientProfile)
+                    navigator.navigateTo(Screen.PatientDashboard)
                 }
             )
 
@@ -99,7 +119,7 @@ fun BoxWithBottomNav(
     content: @Composable () -> Unit
 ) {
     val showBottomNav = when (navigator.currentScreen) {
-        Screen.Splash, Screen.Onboarding, Screen.SignIn, Screen.SignUp, Screen.Home -> false
+        Screen.Splash, Screen.Onboarding, Screen.SignIn, Screen.SignUp, Screen.Home, Screen.RoleSelection-> false
         else -> true
     }
 

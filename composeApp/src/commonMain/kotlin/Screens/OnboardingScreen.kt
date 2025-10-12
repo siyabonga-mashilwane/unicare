@@ -52,7 +52,7 @@ fun OnboardingScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         // Skip Button
-        ButtonFactory.CreatButton(
+        ButtonFactory.CreateButton(
             text = "Skip",
             type = ButtonType.MEDIUM,
             rounded = true,
