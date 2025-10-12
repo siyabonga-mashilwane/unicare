@@ -1,89 +1,170 @@
 package com.example.unicare
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
-import com.example.unicare.ui.theme.UniCareTheme
+import androidx.compose.material3.MaterialTheme
+import Navigation.*
+import OneLightColorScheme
+import Screens.*
 
-@OptIn(ExperimentalMaterial3Api::class)
+
+// Define your app states
+enum class AppScreen {
+    ONBOARDING,
+    ROLE_SELECTION,
+    SIGN_IN,
+    SIGN_UP,
+    DOCTOR_MAIN,
+    PATIENT_MAIN
+}
+
 @Composable
+@Preview
 fun App() {
-    UniCareTheme {
-        // Shared patient list across screens
-        var patients by remember {
-            mutableStateOf(
-                listOf(
-                    Patient("Ofentse Masia", "SG-4782", 40, "09/03/2025"),
-                    Patient("Refentje Mkhabela", "JD-2024", 32, "15/01/2024"),
-                    Patient("Siyabonga Mashilwane", "AM-9123", 29, "20/09/2025"),
-                    Patient("Zanele Khumalo", "ZK-1001", 44, "21/08/2025"),
-                    Patient("Peter Daniels", "PD-7777", 51, "18/06/2025")
-                )
+    MaterialTheme(colorScheme = OneLightColorScheme) {
+        UniCareApp()
+    }
+}
+
+@Composable
+fun UniCareApp() {
+    var currentScreen by remember { mutableStateOf(AppScreen.ONBOARDING) }
+    var currentUserType by remember { mutableStateOf(UserType.DOCTOR) }
+    var currentRoute by remember { mutableStateOf("doctor_dashboard") }
+
+    when (currentScreen) {
+        AppScreen.ONBOARDING -> {
+            OnboardingScreen(
+                onGetStarted = { currentScreen = AppScreen.ROLE_SELECTION },
+                onSkipToHome = {
+                    currentUserType = UserType.PATIENT
+                    currentScreen = AppScreen.PATIENT_MAIN
+                    currentRoute = "patient_dashboard"
+                }
             )
         }
-
-        // Tracks current screen view
-        var currentScreen by remember { mutableStateOf("patients") }
-
-        Scaffold(
-            topBar = {
-                CenterAlignedTopAppBar(
-                    title = {
-                        Text(
-                            when (currentScreen) {
-                                "patients" -> "UniCare Patients"
-                                "create_patient" -> "Add New Patient"
-                                "components" -> "Components"
-                                else -> "UniCare"
-                            }
-                        )
-                    },
-                    actions = {
-                        // Navigation toggle button in top bar
-                        TextButton(onClick = {
-                            currentScreen = when (currentScreen) {
-                                "patients" -> "components"
-                                "components" -> "patients"
-                                else -> "patients"
-                            }
-                        }) {
-                            Text(
-                                if (currentScreen == "patients") "Go to Components" else "Go to Patients",
-                                color = MaterialTheme.colorScheme.onPrimary
-                            )
+        AppScreen.ROLE_SELECTION -> {
+            RoleSelectionScreen(
+                onDoctorSelected = {
+                    currentUserType = UserType.DOCTOR
+                    currentScreen = AppScreen.SIGN_IN
+                },
+                onPatientSelected = {
+                    currentUserType = UserType.PATIENT
+                    currentScreen = AppScreen.SIGN_IN
+                },
+                onBackClick = { currentScreen = AppScreen.ONBOARDING }
+            )
+        }
+        AppScreen.SIGN_IN -> {
+            SignInScreen(
+                onSignInSuccess = {
+                    when (currentUserType) {
+                        UserType.DOCTOR -> {
+                            currentScreen = AppScreen.DOCTOR_MAIN
+                            currentRoute = "doctor_dashboard"
                         }
-                    },
-                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        titleContentColor = MaterialTheme.colorScheme.onPrimary
-                    )
-                )
-            }
-        ) { padding ->
-            Box(modifier = Modifier.padding(padding)) {
-                when (currentScreen) {
-                    // 🩺 Patient list + search + FAB to add
-                    "patients" -> PatientSearchScreen(
-                        patients = patients,
-                        onAddPatientClick = { currentScreen = "create_patient" }
-                    )
-
-                    // ➕ Create new patient screen
-                    "create_patient" -> CreatePatientScreen(
-                        onPatientAdded = { newPatient ->
-                            patients = listOf(newPatient) + patients
-                            currentScreen = "patients"
+                        UserType.PATIENT -> {
+                            currentScreen = AppScreen.PATIENT_MAIN
+                            currentRoute = "patient_dashboard"
                         }
-                    )
-
-                    // 🧩 Components screen
-                    "components" -> TextComponentScreen()
+                    }
+                },
+                onSignUpClick = { currentScreen = AppScreen.SIGN_UP },
+                onBackClick = { currentScreen = AppScreen.ROLE_SELECTION }
+            )
+        }
+        AppScreen.SIGN_UP -> {
+            SignUpScreen(
+                onSignUpSuccess = {
+                    when (currentUserType) {
+                        UserType.DOCTOR -> {
+                            currentScreen = AppScreen.DOCTOR_MAIN
+                            currentRoute = "doctor_dashboard"
+                        }
+                        UserType.PATIENT -> {
+                            currentScreen = AppScreen.PATIENT_MAIN
+                            currentRoute = "patient_dashboard"
+                        }
+                    }
+                },
+                onSignInClick = { currentScreen = AppScreen.SIGN_IN },
+                onBackClick = { currentScreen = AppScreen.SIGN_IN }
+            )
+        }
+        AppScreen.DOCTOR_MAIN -> {
+            DoctorMainScreen(
+                currentRoute = currentRoute,
+                onNavigationItemClick = { navItem ->
+                    currentRoute = navItem.route
+                },
+                onBackToAuth = {
+                    currentScreen = AppScreen.ROLE_SELECTION
+                    currentRoute = "doctor_dashboard"
                 }
-            }
+            )
+        }
+        AppScreen.PATIENT_MAIN -> {
+            PatientMainScreen(
+                currentRoute = currentRoute,
+                onNavigationItemClick = { navItem ->
+                    currentRoute = navItem.route
+                },
+                onBackToAuth = {
+                    currentScreen = AppScreen.ROLE_SELECTION
+                    currentRoute = "patient_dashboard"
+                }
+            )
         }
     }
 }
 
+@Composable
+fun DoctorMainScreen(
+    currentRoute: String,
+    onNavigationItemClick: (BottomNavItems) -> Unit,
+    onBackToAuth: () -> Unit
+) {
+    androidx.compose.material3.Scaffold(
+        bottomBar = {
+            FloatingBottomNav(
+                currentRoute = currentRoute,
+                onItemClick = onNavigationItemClick,
+                userType = UserType.DOCTOR
+            )
+        }
+    ) { paddingValues ->
+        when (currentRoute) {
+            "doctor_patients" -> DoctorPatientsScreen()
+            "doctor_search" -> DoctorSearchScreen()
+            "add_patient" -> AddPatientScreen()
+            "doctor_profile" -> DoctorProfileScreen()
+            else -> DoctorPatientsScreen()
+        }
+    }
+}
 
+@Composable
+fun PatientMainScreen(
+    currentRoute: String,
+    onNavigationItemClick: (BottomNavItems) -> Unit,
+    onBackToAuth: () -> Unit
+) {
+    androidx.compose.material3.Scaffold(
+        bottomBar = {
+            FloatingBottomNav(
+                currentRoute = currentRoute,
+                onItemClick = onNavigationItemClick,
+                userType = UserType.PATIENT
+            )
+        }
+    ) { paddingValues ->
+        when (currentRoute) {
+            "patient_visits" -> PatientVisitsScreen()
+            "patient_notifications" -> PatientNotificationsScreen()
+            "patient_files" -> PatientFilesScreen()
+            "patient_prescription" -> PatientPrescriptionScreen()
+            "patient_profile" -> PatientProfileScreen()
+            else -> PatientVisitsScreen()
+        }
+    }
+}
