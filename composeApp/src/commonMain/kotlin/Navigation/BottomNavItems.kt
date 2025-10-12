@@ -2,17 +2,17 @@ package Navigation
 
 import androidx.compose.ui.graphics.Color
 
-
-//User type enum
-
+enum class UserType{
+    DOCTOR, PATIENT
+}
 
 // Base sealed class for navigation items
 sealed class BottomNavItems (
     val route: String,
     val title: String,
     val iconName: String,
-    val selectedColor: Color = Color(0xFF2196F3), //Blue from design
-    val unselectedColor: Color = Color(0xFF757575), //Grey from design
+    val selectedColor: Color = Color(0xFF4078F2), //primary color
+    val unselectedColor: Color = Color(0xFF9E9E9E), //Grey from design
 ) {
     //Doctor Navigation items
     object DoctorPatients : BottomNavItems(
@@ -29,7 +29,7 @@ sealed class BottomNavItems (
 
     object AddPatient : BottomNavItems(
         route = "add_patient",
-        title = "Add",
+        title = "Add Patient",
         iconName = "person_add",
     )
 
@@ -38,6 +38,7 @@ sealed class BottomNavItems (
         title = "Profile",
         iconName = "person",
     )
+
 
     // Patient Navigation Items
     object PatientVisits : BottomNavItems(
@@ -60,7 +61,7 @@ sealed class BottomNavItems (
 
     object PatientPrescription : BottomNavItems(
         route = "patient_prescription",
-        title = "Rx",
+        title = "Prescription",
         iconName = "medication"
     )
 }

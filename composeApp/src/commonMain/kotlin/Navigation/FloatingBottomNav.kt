@@ -5,12 +5,16 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -19,7 +23,10 @@ import androidx.compose.ui.unit.sp
 fun FloatingBottomNav(
     currentRoute: String,
     onItemClick: (BottomNavItems) -> Unit,
-    userType: UserType = UserType.DOCTOR
+    userType: UserType = UserType.DOCTOR,
+    backgroundColor: Color = MaterialTheme.colorScheme.surface,
+    selectedColor: Color = MaterialTheme.colorScheme.primary,
+    unselectedColor: Color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
 ){
     val navItems = getNavigationItems(userType)
 
@@ -28,9 +35,9 @@ fun FloatingBottomNav(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
-            .height(80.dp),
+            .height(70.dp),
         elevation = CardDefaults.cardElevation(8.dp),
-        shape = RoundedCornerShape(25.dp),
+        shape = RoundedCornerShape(35.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ){
         Row(
@@ -44,7 +51,9 @@ fun FloatingBottomNav(
                 NavigationItem(
                     item = item,
                     isSelected = currentRoute == item.route,
-                    onClick = { onItemClick(item) }
+                    onClick = { onItemClick(item) },
+                    selectedColor = selectedColor,
+                    unselectedColor = unselectedColor
                 )
             }
         }
@@ -55,15 +64,20 @@ fun FloatingBottomNav(
 fun NavigationItem(
     item: BottomNavItems,
     isSelected: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    selectedColor: Color,
+    unselectedColor: Color
 ){
     val contentColor = if (isSelected) item.selectedColor else item.unselectedColor
+    val backgroundColor = if (isSelected) item.selectedColor.copy(alpha = 0.1f) else Color.Transparent
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
         modifier = Modifier
             .clickable { onClick() }
-            .padding(horizontal = 16.dp, vertical = 12.dp)
+            .padding(horizontal = 8.dp, vertical = 6.dp)
+            .height(56.dp)
 
     ){
         // Icon container with background when selected
@@ -72,42 +86,44 @@ fun NavigationItem(
                 .size(36.dp)
                 .clip(CircleShape)
                 .background(
-                    color = if (isSelected) contentColor.copy(alpha = 0.15f)
-                        else Color.Transparent,
+                    color = backgroundColor,
                     shape = CircleShape
                 ),
             contentAlignment = Alignment.Center
         ){
-            // Using emojis for cross-platform compatibility
-            Text(
-                text = getIconEmoji(item.iconName),
-                fontSize = 18.sp,
-                color = contentColor
+            // Using proper Material icons
+            Icon(
+                imageVector = getMaterialIcon(item.iconName, isSelected),
+                contentDescription = item.title,
+                tint = contentColor,
+                modifier = Modifier.size(20.dp)
             )
         }
 
-        Spacer(modifier = Modifier.height(4.dp))
+        Spacer(modifier = Modifier.height(2.dp))
 
         Text(
             text = item.title,
             color = contentColor,
-            fontSize = 14.sp,
-            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
+            fontSize = 10.sp,
+            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+            maxLines = 1
         )
     }
 }
 
 //Helper function to get emoji placeholders for icons
-fun getIconEmoji(iconName: String): String{
+fun getMaterialIcon(iconName: String, isSelected: Boolean): ImageVector{
     return when(iconName){
-        "people" -> "👥" //people emoji
-        "search" -> "🔍" // magnifying glass emoji
-        "person_add" -> "➕" // plus emoji
-        "person" -> "👤" //person emoji
-        "medical_services" -> "🏥" // hospital emoji
-        "notifications" -> "🔔" // bell emoji
-        "folder" -> "📁" // file folder emoji
-        "medication" -> "💊" // pill emoji
-        else -> "o" //fall back circle
+        "people" -> if(isSelected) Icons.Filled.People else Icons.Outlined.Person
+        "search" -> if (isSelected) Icons.Filled.Search else Icons.Outlined.Search
+        "person_add" -> if (isSelected) Icons.Filled.PersonAdd else Icons.Outlined.PersonAdd
+        "person" -> if (isSelected) Icons.Filled.Person else Icons.Outlined.Person
+        "medical_services" -> if (isSelected) Icons.Filled.MedicalServices else Icons.Outlined.MedicalServices
+        "notifications" -> if (isSelected) Icons.Filled.Notifications else Icons.Outlined.PersonAdd
+        "folder" -> if (isSelected) Icons.Filled.Folder else Icons.Outlined.Folder
+        "medication" -> if (isSelected) Icons.Filled.Medication else Icons.Outlined.Medication
+
+        else -> if (isSelected) Icons.Filled.Circle else Icons.Outlined.Circle
     }
 }

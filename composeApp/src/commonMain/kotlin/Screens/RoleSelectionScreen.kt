@@ -84,7 +84,7 @@ fun RoleSelectionScreen(
                             style = MaterialTheme.typography.headlineSmall
                         )
                         Text(
-                            text = "Manage patients anf appointments",
+                            text = "Manage patients and appointments",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
