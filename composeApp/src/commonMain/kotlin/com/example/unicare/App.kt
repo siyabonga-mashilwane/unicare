@@ -1,49 +1,89 @@
 package com.example.unicare
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.safeContentPadding
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import org.jetbrains.compose.resources.painterResource
-import org.jetbrains.compose.ui.tooling.preview.Preview
+import com.example.unicare.ui.theme.UniCareTheme
 
-import unicare.composeapp.generated.resources.Res
-import unicare.composeapp.generated.resources.compose_multiplatform
-
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-@Preview
 fun App() {
-    MaterialTheme {
-        var showContent by remember { mutableStateOf(false) }
-        Column(
-            modifier = Modifier
-                .background(MaterialTheme.colorScheme.primaryContainer)
-                .safeContentPadding()
-                .fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Button(onClick = { showContent = !showContent }) {
-                Text("Click me!")
+    UniCareTheme {
+        // Shared patient list across screens
+        var patients by remember {
+            mutableStateOf(
+                listOf(
+                    Patient("Ofentse Masia", "SG-4782", 40, "09/03/2025"),
+                    Patient("Refentje Mkhabela", "JD-2024", 32, "15/01/2024"),
+                    Patient("Siyabonga Mashilwane", "AM-9123", 29, "20/09/2025"),
+                    Patient("Zanele Khumalo", "ZK-1001", 44, "21/08/2025"),
+                    Patient("Peter Daniels", "PD-7777", 51, "18/06/2025")
+                )
+            )
+        }
+
+        // Tracks current screen view
+        var currentScreen by remember { mutableStateOf("patients") }
+
+        Scaffold(
+            topBar = {
+                CenterAlignedTopAppBar(
+                    title = {
+                        Text(
+                            when (currentScreen) {
+                                "patients" -> "UniCare Patients"
+                                "create_patient" -> "Add New Patient"
+                                "components" -> "Components"
+                                else -> "UniCare"
+                            }
+                        )
+                    },
+                    actions = {
+                        // Navigation toggle button in top bar
+                        TextButton(onClick = {
+                            currentScreen = when (currentScreen) {
+                                "patients" -> "components"
+                                "components" -> "patients"
+                                else -> "patients"
+                            }
+                        }) {
+                            Text(
+                                if (currentScreen == "patients") "Go to Components" else "Go to Patients",
+                                color = MaterialTheme.colorScheme.onPrimary
+                            )
+                        }
+                    },
+                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        titleContentColor = MaterialTheme.colorScheme.onPrimary
+                    )
+                )
             }
-            AnimatedVisibility(showContent) {
-                val greeting = remember { Greeting().greet() }
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    Image(painterResource(Res.drawable.compose_multiplatform), null)
-                    Text("Compose: $greeting")
+        ) { padding ->
+            Box(modifier = Modifier.padding(padding)) {
+                when (currentScreen) {
+                    // 🩺 Patient list + search + FAB to add
+                    "patients" -> PatientSearchScreen(
+                        patients = patients,
+                        onAddPatientClick = { currentScreen = "create_patient" }
+                    )
+
+                    // ➕ Create new patient screen
+                    "create_patient" -> CreatePatientScreen(
+                        onPatientAdded = { newPatient ->
+                            patients = listOf(newPatient) + patients
+                            currentScreen = "patients"
+                        }
+                    )
+
+                    // 🧩 Components screen
+                    "components" -> TextComponentScreen()
                 }
             }
         }
     }
 }
+
+

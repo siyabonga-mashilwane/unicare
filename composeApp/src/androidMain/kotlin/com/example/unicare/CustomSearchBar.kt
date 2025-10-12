@@ -1,0 +1,1 @@
+import unicare.composeapp.generated.resources.compose_multiplatform
