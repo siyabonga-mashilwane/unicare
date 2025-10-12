@@ -23,6 +23,7 @@ fun PatientVisitsScreen(){
 
 @Composable
 fun PatientNotificationsScreen(){
+
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Text("Patient - Notifications", style = MaterialTheme.typography.headlineMedium)
     }

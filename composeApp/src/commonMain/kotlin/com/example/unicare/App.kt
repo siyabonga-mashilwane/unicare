@@ -18,7 +18,6 @@ enum class AppScreen {
 }
 
 @Composable
-@Preview
 fun App() {
     MaterialTheme(colorScheme = OneLightColorScheme) {
         UniCareApp()

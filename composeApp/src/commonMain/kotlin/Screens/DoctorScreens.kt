@@ -1,5 +1,6 @@
 package Screens
 
+import ProfileScreen
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -16,6 +17,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.unicare.CreatePatientScreen
+import com.example.unicare.CustomSearchBar
+import com.example.unicare.PatientSearchScreen
+import com.example.unicare.Patient
 
 @Composable
 fun DoctorDashboard(){
@@ -109,19 +114,30 @@ fun DoctorPatientsScreen(){
 fun DoctorSearchScreen(){
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Text("Doctor - Search", style = MaterialTheme.typography.headlineMedium)
+        var patients by remember {
+            mutableStateOf(
+                listOf(
+                    Patient("Ofentse Masia", "SG-4782", 40, "09/03/2025"),
+                    Patient("Refentje Mkhabela", "JD-2024", 32, "15/01/2024"),
+                    Patient("Siyabonga Mashilwane", "AM-9123", 29, "20/09/2025"),
+                    Patient("Zanele Khumalo", "ZK-1001", 44, "21/08/2025"),
+                    Patient("Peter Daniels", "PD-7777", 51, "18/06/2025")
+                )
+            )
+        }
+
+        PatientSearchScreen(patients)
     }
 }
 
 @Composable
 fun AddPatientScreen(){
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text("Add Patient", style = MaterialTheme.typography.headlineMedium)
-    }
+    CreatePatientScreen()
 }
 
 @Composable
 fun DoctorProfileScreen(){
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text("Doctor Profile", style = MaterialTheme.typography.headlineMedium)
+        ProfileScreen()
     }
 }

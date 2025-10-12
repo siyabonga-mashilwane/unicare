@@ -103,20 +103,6 @@ fun PatientSearchScreen(
                 )
             }
         }
-
-        FloatingActionButton(
-            onClick = onAddPatientClick,
-            containerColor = MaterialTheme.colorScheme.primary,
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(16.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Default.Add,
-                contentDescription = "Add Patient",
-                tint = Color.White
-            )
-        }
     }
 }
 
