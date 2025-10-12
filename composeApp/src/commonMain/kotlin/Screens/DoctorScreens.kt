@@ -30,7 +30,9 @@ fun DoctorDashboard(){
 }
 
 @Composable
-fun DoctorPatientsScreen(){
+fun DoctorPatientsScreen(
+    onClick: () -> Unit
+){
     //Sample patient data
     val patients = listOf(
         "John Smith" to "*********0856",
@@ -70,7 +72,7 @@ fun DoctorPatientsScreen(){
                         .background(MaterialTheme.colorScheme.surface)
                         .clickable {
                             //Handle patient item click
-                            println("Clicked on patient: $name")
+                            onClick()
                         }
                         .padding(horizontal = 16.dp, vertical = 12.dp),
                     verticalAlignment = Alignment.CenterVertically,

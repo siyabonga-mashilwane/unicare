@@ -14,7 +14,8 @@ enum class AppScreen {
     SIGN_IN,
     SIGN_UP,
     DOCTOR_MAIN,
-    PATIENT_MAIN
+    PATIENT_MAIN,
+    ADD_COMPONENT
 }
 
 @Composable
@@ -99,6 +100,9 @@ fun UniCareApp() {
                 onBackToAuth = {
                     currentScreen = AppScreen.ROLE_SELECTION
                     currentRoute = "doctor_dashboard"
+                },
+                onClick = {
+                    currentScreen = AppScreen.ADD_COMPONENT
                 }
             )
         }
@@ -114,6 +118,10 @@ fun UniCareApp() {
                 }
             )
         }
+
+        AppScreen.ADD_COMPONENT -> {
+            TextComponentScreen()
+        }
     }
 }
 
@@ -121,7 +129,8 @@ fun UniCareApp() {
 fun DoctorMainScreen(
     currentRoute: String,
     onNavigationItemClick: (BottomNavItems) -> Unit,
-    onBackToAuth: () -> Unit
+    onBackToAuth: () -> Unit,
+    onClick: () -> Unit
 ) {
     androidx.compose.material3.Scaffold(
         bottomBar = {
@@ -133,11 +142,11 @@ fun DoctorMainScreen(
         }
     ) { paddingValues ->
         when (currentRoute) {
-            "doctor_patients" -> DoctorPatientsScreen()
+            "doctor_patients" -> DoctorPatientsScreen( onClick = {onClick})
             "doctor_search" -> DoctorSearchScreen()
             "add_patient" -> AddPatientScreen()
             "doctor_profile" -> DoctorProfileScreen()
-            else -> DoctorPatientsScreen()
+            else -> DoctorPatientsScreen(onClick = {onClick})
         }
     }
 }
